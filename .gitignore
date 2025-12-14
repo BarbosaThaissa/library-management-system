@@ -85,3 +85,9 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
+
+bin/
+obj/
+.vscode/
+.vs/
+.config/
