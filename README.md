@@ -120,7 +120,7 @@ A aplicação ficará disponível em:
 
 ### Rotas da SPA
 
-- `/` - Authors
+- `/authors` - Authors
 - `/genres` - Genres
 - `/books` - Books
 
