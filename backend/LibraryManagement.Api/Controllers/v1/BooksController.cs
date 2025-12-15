@@ -12,10 +12,13 @@ public class BooksController(IBookService service) : ControllerBase
     private readonly IBookService _service = service;
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<BookResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Get() =>
         Ok(await _service.GetAllAsync());
 
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(BookResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(int id)
     {
         var book = await _service.GetByIdAsync(id);
@@ -23,6 +26,8 @@ public class BooksController(IBookService service) : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(BookResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Post([FromBody] BookCreateDto dto)
     {
         try
@@ -37,6 +42,8 @@ public class BooksController(IBookService service) : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(BookResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Put(int id, [FromBody] BookUpdateDto dto)
     {
         try
@@ -51,6 +58,8 @@ public class BooksController(IBookService service) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var removed = await _service.DeleteAsync(id);

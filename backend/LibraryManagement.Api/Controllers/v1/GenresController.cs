@@ -12,10 +12,13 @@ public class GenresController(IGenreService service) : ControllerBase
     private readonly IGenreService _service = service;
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<GenreResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Get() =>
         Ok(await _service.GetAllAsync());
 
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(GenreResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(int id)
     {
         var genre = await _service.GetByIdAsync(id);
@@ -23,6 +26,8 @@ public class GenresController(IGenreService service) : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(GenreResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Post([FromBody] GenreCreateDto dto)
     {
         var created = await _service.CreateAsync(dto);
@@ -30,6 +35,8 @@ public class GenresController(IGenreService service) : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(GenreResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Put(int id, [FromBody] GenreUpdateDto dto)
     {
         var updated = await _service.UpdateAsync(id, dto);
@@ -37,6 +44,8 @@ public class GenresController(IGenreService service) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var removed = await _service.DeleteAsync(id);
