@@ -37,6 +37,25 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    bool connected = false;
+    while (!connected)
+    {
+        try
+        {
+            db.Database.Migrate();
+            connected = true;
+        }
+        catch
+        {
+            Console.WriteLine("Esperando o banco de dados...");
+            Thread.Sleep(2000);
+        }
+    }
+}
+
 app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
