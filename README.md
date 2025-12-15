@@ -5,7 +5,7 @@ Backend em .NET C#, frontend em React. API RESTful com CRUD completo e SPA funci
 
 ## Tecnologias
 
-- **Backend:** .NET 10, C#, Entity Framework, PostgreSQL
+- **Backend:** .NET 8, C#, Entity Framework, PostgreSQL
 - **Frontend:** React, TypeScript, Axios, Vite
 - **Testes:** xUnit, Moq, FluentAssertions
 - **Documentação:** Swagger
