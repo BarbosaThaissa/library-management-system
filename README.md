@@ -3,7 +3,7 @@
 Sistema de gerenciamento de autores, gêneros e livros.  
 Backend em .NET C#, frontend em React. API RESTful com CRUD completo e SPA funcional.
 
-## 🚀 Tecnologias
+## Tecnologias
 
 - **Backend:** .NET 10, C#, Entity Framework, PostgreSQL
 - **Frontend:** React, TypeScript, Axios, Vite
