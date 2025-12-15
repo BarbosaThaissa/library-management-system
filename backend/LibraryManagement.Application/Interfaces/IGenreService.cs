@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using LibraryManagement.Application.DTOs.Genre;
 
 namespace LibraryManagement.Application.Interfaces;
 
 public interface IGenreService
 {
-    Task<IEnumerable<Genre>> GetAllAsync();
-    Task<Genre?> GetByIdAsync(int id);
-    Task<Genre> CreateAsync(Genre genre);
-    Task<Genre?> UpdateAsync(Genre genre);
+    Task<IEnumerable<GenreResponseDto>> GetAllAsync();
+    Task<GenreResponseDto?> GetByIdAsync(int id);
+    Task<GenreResponseDto> CreateAsync(GenreCreateDto dto);
+    Task<GenreResponseDto?> UpdateAsync(int id, GenreUpdateDto dto);
     Task<bool> DeleteAsync(int id);
 }

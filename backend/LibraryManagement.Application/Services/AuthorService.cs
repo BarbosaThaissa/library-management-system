@@ -1,42 +1,56 @@
+using LibraryManagement.Application.DTOs.Author;
 using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Domain.Interfaces;
 using LibraryManagement.Domain.Entities;
 
 namespace LibraryManagement.Application.Services;
 
-public class AuthorService : IAuthorService
+public class AuthorService(IAuthorRepository repository) : IAuthorService
 {
-    private readonly IAuthorRepository _repository;
+    private readonly IAuthorRepository _repository = repository;
 
-    public AuthorService(IAuthorRepository repository)
+    public async Task<IEnumerable<AuthorResponseDto>> GetAllAsync()
     {
-        _repository = repository;
+        var authors = await _repository.GetAllAsync();
+
+        return authors.Select(a =>
+            new AuthorResponseDto(a.Id, a.Name));
     }
 
-    public Task<IEnumerable<Author>> GetAllAsync() =>
-        _repository.GetAllAsync();
-
-    public Task<Author?> GetByIdAsync(int id) =>
-        _repository.GetByIdAsync(id);
-
-    public Task<Author> CreateAsync(Author author) =>
-        _repository.AddAsync(author);
-
-    public async Task<Author?> UpdateAsync(Author author)
+    public async Task<AuthorResponseDto?> GetByIdAsync(int id)
     {
-        var exists = await _repository.GetByIdAsync(author.Id);
-        if (exists == null)
-            return null;
+        var author = await _repository.GetByIdAsync(id);
+        if (author == null) return null;
 
-        return await _repository.UpdateAsync(author);
+        return new AuthorResponseDto(author.Id, author.Name);
+    }
+
+    public async Task<AuthorResponseDto> CreateAsync(AuthorCreateDto dto)
+    {
+        var author = new Author
+        {
+            Name = dto.Name
+        };
+
+        var created = await _repository.AddAsync(author);
+
+        return new AuthorResponseDto(created.Id, created.Name);
+    }
+
+    public async Task<AuthorResponseDto?> UpdateAsync(int id, AuthorUpdateDto dto)
+    {
+        var author = await _repository.GetByIdAsync(id);
+        if (author == null) return null;
+
+        author.Name = dto.Name;
+
+        await _repository.UpdateAsync(author);
+
+        return new AuthorResponseDto(author.Id, author.Name);
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var exists = await _repository.GetByIdAsync(id);
-        if (exists == null)
-            return false;
-
-        await _repository.DeleteAsync(id);
-        return true;
+        return await _repository.DeleteAsync(id);
     }
 }

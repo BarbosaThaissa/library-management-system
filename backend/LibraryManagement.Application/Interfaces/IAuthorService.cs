@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using LibraryManagement.Application.DTOs.Author;
 
 namespace LibraryManagement.Application.Interfaces;
 
 public interface IAuthorService
 {
-    Task<IEnumerable<Author>> GetAllAsync();
-    Task<Author?> GetByIdAsync(int id);
-    Task<Author> CreateAsync(Author author);
-    Task<Author?> UpdateAsync(Author author);
+    Task<IEnumerable<AuthorResponseDto>> GetAllAsync();
+    Task<AuthorResponseDto?> GetByIdAsync(int id);
+    Task<AuthorResponseDto> CreateAsync(AuthorCreateDto dto);
+    Task<AuthorResponseDto?> UpdateAsync(int id, AuthorUpdateDto dto);
     Task<bool> DeleteAsync(int id);
 }

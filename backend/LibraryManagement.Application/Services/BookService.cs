@@ -1,69 +1,108 @@
+using LibraryManagement.Application.DTOs.Book;
 using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Domain.Interfaces;
 using LibraryManagement.Domain.Entities;
 
 namespace LibraryManagement.Application.Services;
 
-public class BookService : IBookService
+public class BookService(
+    IBookRepository bookRepository,
+    IAuthorRepository authorRepository,
+    IGenreRepository genreRepository) : IBookService
 {
-    private readonly IBookRepository _bookRepository;
-    private readonly IAuthorRepository _authorRepository;
-    private readonly IGenreRepository _genreRepository;
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly IAuthorRepository _authorRepository = authorRepository;
+    private readonly IGenreRepository _genreRepository = genreRepository;
 
-    public BookService(
-        IBookRepository bookRepository,
-        IAuthorRepository authorRepository,
-        IGenreRepository genreRepository)
+    public async Task<IEnumerable<BookResponseDto>> GetAllAsync()
     {
-        _bookRepository = bookRepository;
-        _authorRepository = authorRepository;
-        _genreRepository = genreRepository;
+        var books = await _bookRepository.GetAllWithRelationsAsync();
+
+        return books.Select(b =>
+            new BookResponseDto(
+                b.Id,
+                b.Title,
+                b.AuthorId,
+                b.Author!.Name,
+                b.GenreId,
+                b.Genre!.Name
+            ));
     }
 
-    public Task<IEnumerable<Book>> GetAllAsync() =>
-        _bookRepository.GetAllAsync();
-
-    public Task<Book?> GetByIdAsync(int id) =>
-        _bookRepository.GetByIdAsync(id);
-
-    public async Task<Book?> CreateAsync(Book book)
+    public async Task<BookResponseDto?> GetByIdAsync(int id)
     {
-        if (!await AuthorExists(book.AuthorId))
-            return null;
+        var book = await _bookRepository.GetByIdWithRelationsAsync(id);
+        if (book == null) return null;
 
-        if (!await GenreExists(book.GenreId))
-            return null;
-
-        return await _bookRepository.AddAsync(book);
+        return new BookResponseDto(
+            book.Id,
+            book.Title,
+            book.AuthorId,
+            book.Author!.Name,
+            book.GenreId,
+            book.Genre!.Name
+        );
     }
 
-    public async Task<Book?> UpdateAsync(Book book)
+    public async Task<BookResponseDto> CreateAsync(BookCreateDto dto)
     {
-        var exists = await _bookRepository.GetByIdAsync(book.Id);
-        if (exists == null)
-            return null;
+        if (!await _authorRepository.ExistsAsync(dto.AuthorId))
+            throw new ArgumentException("Author not found");
 
-        if (!await AuthorExists(book.AuthorId))
-            return null;
+        if (!await _genreRepository.ExistsAsync(dto.GenreId))
+            throw new ArgumentException("Genre not found");
 
-        if (!await GenreExists(book.GenreId))
-            return null;
+        var book = new Book
+        {
+            Title = dto.Title,
+            AuthorId = dto.AuthorId,
+            GenreId = dto.GenreId
+        };
 
-        return await _bookRepository.UpdateAsync(book);
+        var created = await _bookRepository.AddAsync(book);
+        var fullBook = await _bookRepository.GetByIdWithRelationsAsync(created.Id);
+
+        return new BookResponseDto(
+            fullBook!.Id,
+            fullBook.Title,
+            fullBook.AuthorId,
+            fullBook.Author!.Name,
+            fullBook.GenreId,
+            fullBook.Genre!.Name
+        );
+    }
+
+    public async Task<BookResponseDto?> UpdateAsync(int id, BookUpdateDto dto)
+    {
+        var book = await _bookRepository.GetByIdAsync(id);
+        if (book == null) return null;
+
+        if (!await _authorRepository.ExistsAsync(dto.AuthorId))
+            throw new ArgumentException("Author not found");
+
+        if (!await _genreRepository.ExistsAsync(dto.GenreId))
+            throw new ArgumentException("Genre not found");
+
+        book.Title = dto.Title;
+        book.AuthorId = dto.AuthorId;
+        book.GenreId = dto.GenreId;
+
+        await _bookRepository.UpdateAsync(book);
+
+        var updated = await _bookRepository.GetByIdWithRelationsAsync(id);
+
+        return new BookResponseDto(
+            updated!.Id,
+            updated.Title,
+            updated.AuthorId,
+            updated.Author!.Name,
+            updated.GenreId,
+            updated.Genre!.Name
+        );
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var exists = await _bookRepository.GetByIdAsync(id);
-        if (exists == null)
-            return false;
-
-        await _bookRepository.DeleteAsync(id);
-        return true;
+        return await _bookRepository.DeleteAsync(id);
     }
-
-    private async Task<bool> AuthorExists(int authorId) =>
-        await _authorRepository.GetByIdAsync(authorId) != null;
-
-    private async Task<bool> GenreExists(int genreId) =>
-        await _genreRepository.GetByIdAsync(genreId) != null;
 }

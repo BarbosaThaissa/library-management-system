@@ -1,19 +1,15 @@
+using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Application.DTOs.Author;
 using LibraryManagement.Application.Services;
-using LibraryManagement.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagement.Api.Controllers.v1;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class AuthorsController : ControllerBase
+public class AuthorsController(IAuthorService service) : ControllerBase
 {
-    private readonly AuthorService _service;
-
-    public AuthorsController(AuthorService service)
-    {
-        _service = service;
-    }
+    private readonly IAuthorService _service = service;
 
     [HttpGet]
     public async Task<IActionResult> Get() =>
@@ -22,24 +18,21 @@ public class AuthorsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var item = await _service.GetByIdAsync(id);
-        return item == null ? NotFound() : Ok(item);
+        var author = await _service.GetByIdAsync(id);
+        return author == null ? NotFound() : Ok(author);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] Author author)
+    public async Task<IActionResult> Post([FromBody] AuthorCreateDto dto)
     {
-        var created = await _service.CreateAsync(author);
+        var created = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, [FromBody] Author author)
+    public async Task<IActionResult> Put(int id, [FromBody] AuthorUpdateDto dto)
     {
-        if (id != author.Id)
-            return BadRequest();
-
-        var updated = await _service.UpdateAsync(author);
+        var updated = await _service.UpdateAsync(id, dto);
         return updated == null ? NotFound() : Ok(updated);
     }
 

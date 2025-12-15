@@ -1,19 +1,15 @@
+using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Application.DTOs.Genre;
 using LibraryManagement.Application.Services;
-using LibraryManagement.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagement.Api.Controllers.v1;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class GenresController : ControllerBase
+public class GenresController(IGenreService service) : ControllerBase
 {
-    private readonly GenreService _service;
-
-    public GenresController(GenreService service)
-    {
-        _service = service;
-    }
+    private readonly IGenreService _service = service;
 
     [HttpGet]
     public async Task<IActionResult> Get() =>
@@ -22,24 +18,21 @@ public class GenresController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var item = await _service.GetByIdAsync(id);
-        return item == null ? NotFound() : Ok(item);
+        var genre = await _service.GetByIdAsync(id);
+        return genre == null ? NotFound() : Ok(genre);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] Genre genre)
+    public async Task<IActionResult> Post([FromBody] GenreCreateDto dto)
     {
-        var created = await _service.CreateAsync(genre);
+        var created = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, [FromBody] Genre genre)
+    public async Task<IActionResult> Put(int id, [FromBody] GenreUpdateDto dto)
     {
-        if (id != genre.Id)
-            return BadRequest();
-
-        var updated = await _service.UpdateAsync(genre);
+        var updated = await _service.UpdateAsync(id, dto);
         return updated == null ? NotFound() : Ok(updated);
     }
 

@@ -1,19 +1,15 @@
+using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Application.DTOs.Book;
 using LibraryManagement.Application.Services;
-using LibraryManagement.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagement.Api.Controllers.v1;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class BooksController : ControllerBase
+public class BooksController(IBookService service) : ControllerBase
 {
-    private readonly BookService _service;
-
-    public BooksController(BookService service)
-    {
-        _service = service;
-    }
+    private readonly IBookService _service = service;
 
     [HttpGet]
     public async Task<IActionResult> Get() =>
@@ -22,27 +18,36 @@ public class BooksController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var item = await _service.GetByIdAsync(id);
-        return item == null ? NotFound() : Ok(item);
+        var book = await _service.GetByIdAsync(id);
+        return book == null ? NotFound() : Ok(book);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] Book book)
+    public async Task<IActionResult> Post([FromBody] BookCreateDto dto)
     {
-        var created = await _service.CreateAsync(book);
-        return created == null
-            ? BadRequest("AuthorId ou GenreId inválido")
-            : CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+        try
+        {
+            var created = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, [FromBody] Book book)
+    public async Task<IActionResult> Put(int id, [FromBody] BookUpdateDto dto)
     {
-        if (id != book.Id)
-            return BadRequest();
-
-        var updated = await _service.UpdateAsync(book);
-        return updated == null ? NotFound() : Ok(updated);
+        try
+        {
+            var updated = await _service.UpdateAsync(id, dto);
+            return updated == null ? NotFound() : Ok(updated);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]
